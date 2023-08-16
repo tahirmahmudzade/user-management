@@ -27,6 +27,12 @@ export class UserService {
     return users;
   }
 
+  async updateUser(id: number, data: Prisma.UserUpdateInput) {
+    const user = await this.prisma.user.update({ where: { id }, data });
+
+    return user;
+  }
+
   async updateRefreshToken(id: number, refreshToken: string) {
     const user = await this.prisma.user.update({
       where: { id },
