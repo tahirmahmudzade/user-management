@@ -13,7 +13,6 @@ export class UploadFilePipe implements PipeTransform {
     private readonly sizeMb: number,
   ) {}
   transform(value: Express.Multer.File) {
-    console.log(this.fileType);
     return new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({
