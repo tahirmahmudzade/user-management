@@ -2,6 +2,7 @@ import {
   MiddlewareConsumer,
   Module,
   NestModule,
+  RequestMethod,
   ValidationPipe,
 } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -13,6 +14,7 @@ import { UserModule } from './user/user.module';
 import * as Joi from 'joi';
 import { APP_PIPE } from '@nestjs/core';
 import { FilesModule } from './files/files.module';
+import { CurrentUserMiddleware } from './common/middlewares/current-user.middleware';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookieSession = require('cookie-session');
@@ -56,6 +58,25 @@ export class AppModule implements NestModule {
           keys: [this.configService.get<string>('COOKIE_KEY')],
           maxAge: 24 * 60 * 60 * 1000,
         }),
+      )
+      .forRoutes('*');
+
+    consumer
+      .apply(CurrentUserMiddleware)
+      .exclude(
+        { path: 'auth/signup', method: RequestMethod.POST },
+        {
+          path: 'auth/login',
+          method: RequestMethod.POST,
+        },
+        {
+          path: 'auth/google/login',
+          method: RequestMethod.GET,
+        },
+        {
+          path: 'auth/google/redirect',
+          method: RequestMethod.GET,
+        },
       )
       .forRoutes('*');
   }
