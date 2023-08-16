@@ -16,10 +16,10 @@ import { UserDto } from 'src/common/dtos/user.dto';
 import { RegisterDto } from 'src/common/dtos/register.dto';
 import { LocalAuthGuard } from 'src/common/guards/localAuth.guard';
 import { Request, Response } from 'express';
-import { GoogleAuthGuard } from 'src/common/guards/googleAuth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Serialize(UserDto)
 @Controller('auth')
@@ -61,25 +61,30 @@ export class AuthController {
     @Req() req: Request,
     @Session() session: any,
   ) {
-    req.headers.authorization = undefined;
+    req.headers.authorization = null;
+
     session.userId = null;
-    await this.authService.logout(user.id);
+
     return 'Logged out';
   }
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(GoogleAuthGuard)
+  @UseGuards(AuthGuard('google'))
   @Get('/google/login')
-  async googleLogin(@Req() req: Request, @Session() session: any) {
-    session.userId = req.user['id'];
+  async googleLogin() {
     return { message: 'Redirecting to google login page...' };
   }
 
-  @UseGuards(GoogleAuthGuard)
+  @UseGuards(AuthGuard('google'))
   @Get('/google/redirect')
-  async googleRedirect(@Req() req: Request, @Res() res: Response) {
-    const jwt = await this.authService.login(req.user['id']);
-
-    return res.status(HttpStatus.OK).json(jwt);
+  async googleRedirect(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Session() session: any,
+  ) {
+    console.log(req.user);
+    const data = await this.authService.login(req.user['id']);
+    session.userId = data.user.id;
+    return res.status(HttpStatus.OK).json(data);
   }
 }

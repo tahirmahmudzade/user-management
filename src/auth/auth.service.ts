@@ -7,14 +7,13 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, User } from '@prisma/client';
 import { JwtPayload } from 'src/common/types/jwtPayload.type';
-import { Tokens } from 'src/common/types/tokens.type';
+import { Token } from 'src/common/types/tokens.type';
 import { TokensUser } from 'src/common/types/tokensUser.type';
 import { UserService } from 'src/user/user.service';
 import {
   generatePassword,
   passwordHash,
 } from 'src/common/utils/generatePassword';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -22,14 +21,13 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
   ) {}
 
   async signUp(data: Prisma.UserCreateInput): Promise<TokensUser> {
     const isUser = await this.userService.findUserWithUnique({
       email: data.email,
     });
-
+    console.log(data);
     if (isUser)
       throw new BadRequestException('User already exists, please log in');
 
@@ -42,12 +40,11 @@ export class AuthService {
 
     const user = await this.userService.createUser(data);
 
-    const tokens: Tokens = await this.signTokens(user);
-    await this.userService.updateRefreshToken(user.id, tokens.refreshToken);
+    const token: Token = await this.signToken(user);
 
     return {
       user,
-      ...tokens,
+      ...token,
     };
   }
 
@@ -69,27 +66,15 @@ export class AuthService {
     const user: User = await this.userService.findUserWithUnique({
       id: userId,
     });
-    const tokens: Tokens = await this.signTokens(user);
-    await this.userService.updateRefreshToken(user.id, tokens.refreshToken);
+    const token: Token = await this.signToken(user);
 
     return {
       user,
-      ...tokens,
+      ...token,
     };
   }
 
-  async logout(userId: number) {
-    const user = await this.prisma.user.updateMany({
-      where: { id: userId, hashedRefreshToken: { not: null } },
-      data: {
-        hashedRefreshToken: null,
-      },
-    });
-
-    return user;
-  }
-
-  async signTokens(user: User) {
+  async signToken(user: User) {
     const payload: JwtPayload = {
       sub: user.id,
       email: user.email,
@@ -97,20 +82,24 @@ export class AuthService {
       role: user.role,
     };
 
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('ACCESS_TOKEN_SECRET'),
-        expiresIn: this.configService.get<string>('ACCESS_TOKEN_EXPIRES'),
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
-        expiresIn: this.configService.get<string>('REFRESH_TOKEN_EXPIRES'),
-      }),
-    ]);
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: this.configService.get<string>('ACCESS_TOKEN_SECRET'),
+      expiresIn: this.configService.get<string>('ACCESS_TOKEN_EXPIRES'),
+    });
 
     return {
       accessToken,
-      refreshToken,
     };
   }
+
+  // async logout(userId: number) {
+  //   const user = await this.prisma.user.updateMany({
+  //     where: { id: userId, hashedRefreshToken: { not: null } },
+  //     data: {
+  //       hashedRefreshToken: null,
+  //     },
+  //   });
+
+  //   return user;
+  // }
 }
