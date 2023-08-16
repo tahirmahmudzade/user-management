@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Req,
   UploadedFile,
@@ -11,8 +12,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadFilePipe } from 'src/common/pipes/uploadFilePipe.pipe';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { Request } from 'express';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @UseGuards(AccessTokenGuard)
+@UseGuards(AuthGuard)
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -20,7 +23,12 @@ export class FilesController {
   @Post('uploadresume')
   @UseInterceptors(FileInterceptor('file'))
   async uploadResume(
-    @UploadedFile(new UploadFilePipe('application/pdf|application/msword|', 10))
+    @UploadedFile(
+      new UploadFilePipe(
+        'application/msword|application/pdf|application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        10,
+      ),
+    )
     resume: Express.Multer.File,
     @Req() req: Request,
   ) {
@@ -38,11 +46,19 @@ export class FilesController {
     image: Express.Multer.File,
     @Req() req: Request,
   ) {
+    console.log('looking for the user');
+    console.log(req.user);
     const uploadedImage = await this.filesService.uploadFile(
       image,
       req.user['id'],
     );
 
     return uploadedImage;
+  }
+
+  @Get('retrievefiles')
+  async retrieveFiles(@Req() req: Request) {
+    const files = await this.filesService.retrieveFiles();
+    return files;
   }
 }
