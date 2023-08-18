@@ -6,9 +6,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = app.get(ConfigService);
-  console.log(config.get<string>('GCP_CALLBACK_URL'));
-  console.log(config.get<string>('GCP_CLIENT_ID'));
-  console.log(config.get<string>('GCP_CLIENT_SECRET'));
+
   await app.listen(config.get<number>('PORT'));
 }
 bootstrap();
