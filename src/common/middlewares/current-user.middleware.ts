@@ -31,6 +31,7 @@ export class CurrentUserMiddleware implements NestMiddleware {
       if (user) {
         req.currentUser = user;
       } else {
+        next();
       }
     }
     next();
