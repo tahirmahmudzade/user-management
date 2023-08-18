@@ -1,9 +1,8 @@
-import { Bucket, File, Storage } from '@google-cloud/storage';
+import { Bucket, File, GetFilesOptions, Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import { DateTime } from 'luxon';
 import { UserService } from 'src/user/user.service';
-import { createWriteStream } from 'fs';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 @Injectable()
@@ -30,10 +29,15 @@ export class FilesService {
       id: userId,
     });
     const fileExt = `${file.originalname.split('.')[1]}`;
+    let fileType: string;
 
-    // const currentDate = DateTime.local().toFormat('yyyy-MM-dd-HH-mm-ss');
+    if (fileExt === 'pdf') {
+      fileType = 'resume';
+    } else if (fileExt === 'jpg' || fileExt === 'png' || fileExt === 'jpeg') {
+      fileType = 'profilePic';
+    }
 
-    const gscFileName = `${user.id}_${user.firstName}_${user.lastName}.${fileExt}`;
+    const gscFileName = `user-${user.id}/${user.firstName}_${user.lastName}_${fileType}.${fileExt}`;
     const gscFile = this.bucket.file(gscFileName);
 
     const allowedTypes = this.allowedType(fileExt);
@@ -61,15 +65,28 @@ export class FilesService {
     });
   }
 
-  async retrieveFiles() {
-    const localPath = '/Users/tahirmahmudzade/Desktop/hello';
-
+  async retrieveFiles(id?: number) {
+    const streamOptions: GetFilesOptions = {};
+    if (id) {
+      const userFolderPath = `user-${id}`;
+      streamOptions.prefix = `${userFolderPath}/`;
+      streamOptions.autoPaginate = true;
+    }
     this.bucket
-      .getFilesStream()
+      .getFilesStream(streamOptions)
       .on('data', (file: File) => {
         const fileStream = file.createReadStream();
-        const localFilePath = join(localPath, file.name);
-        const writableStream = createWriteStream(localFilePath);
+
+        const localPath = '/Users/tahirmahmudzade/Desktop/hello';
+        const folderPath = file.name.split('/')[0];
+        const localFolderPath = join(localPath, folderPath);
+        const finalFilePath = join(localPath, file.name);
+
+        if (!existsSync(localFolderPath)) {
+          mkdirSync(localFolderPath, { recursive: true });
+        }
+
+        const writableStream = createWriteStream(finalFilePath);
 
         fileStream.pipe(writableStream, { end: false });
 

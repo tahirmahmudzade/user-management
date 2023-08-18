@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Param,
   Post,
   Req,
   UploadedFile,
@@ -20,7 +21,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Post('uploadresume')
+  @Post('uploadResume')
   @UseInterceptors(FileInterceptor('file'))
   async uploadResume(
     @UploadedFile(
@@ -39,15 +40,13 @@ export class FilesController {
     return uploadedResume;
   }
 
-  @Post('uploadimage')
+  @Post('uploadImage')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(
     @UploadedFile(new UploadFilePipe('image/png|image.jpg|image.jpeg', 5))
     image: Express.Multer.File,
     @Req() req: Request,
   ) {
-    console.log('looking for the user');
-    console.log(req.user);
     const uploadedImage = await this.filesService.uploadFile(
       image,
       req.user['id'],
@@ -56,9 +55,15 @@ export class FilesController {
     return uploadedImage;
   }
 
-  @Get('retrievefiles')
-  async retrieveFiles(@Req() req: Request) {
+  @Get('retrieveAllFiles')
+  async retrieveAllFiles() {
     const files = await this.filesService.retrieveFiles();
+    return files;
+  }
+
+  @Get('retrieveFiles/:id')
+  async retrieveUserFiles(@Param('id') id: number) {
+    const files = await this.filesService.retrieveFiles(id);
     return files;
   }
 }
