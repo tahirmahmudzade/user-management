@@ -33,12 +33,9 @@ export class UserService {
     return user;
   }
 
-  async updateRefreshToken(id: number, refreshToken: string) {
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: { hashedRefreshToken: refreshToken },
-    });
+  async deleteUser(id: number) {
+    await this.prisma.user.delete({ where: { id } });
 
-    return user;
+    return 'User deleted successfully';
   }
 }
