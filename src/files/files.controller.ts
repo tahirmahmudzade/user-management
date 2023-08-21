@@ -1,5 +1,6 @@
 import {
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -11,9 +12,10 @@ import {
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadFilePipe } from 'src/common/pipes/uploadFilePipe.pipe';
-import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { Request } from 'express';
+import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @UseGuards(AccessTokenGuard)
 @UseGuards(AuthGuard)
@@ -55,15 +57,29 @@ export class FilesController {
     return uploadedImage;
   }
 
+  @UseGuards(AdminGuard)
   @Get('retrieveAllFiles')
   async retrieveAllFiles() {
     const files = await this.filesService.retrieveFiles();
     return files;
   }
 
+  @UseGuards(AdminGuard)
   @Get('retrieveFiles/:id')
-  async retrieveUserFiles(@Param('id') id: number) {
-    const files = await this.filesService.retrieveFiles(id);
+  async retrieveUserFiles(@Param('id') id: string) {
+    const files = await this.filesService.retrieveFiles(parseInt(id));
     return files;
+  }
+
+  @UseGuards(AdminGuard)
+  @Delete('deleteAllFiles')
+  async deleteAllFiles() {
+    return this.filesService.deleteFiles();
+  }
+
+  @UseGuards(AdminGuard)
+  @Delete('deleteFiles/:id')
+  async deleteUserFiles(@Param('id') id: string) {
+    return this.filesService.deleteFiles(parseInt(id));
   }
 }

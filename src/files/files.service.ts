@@ -1,4 +1,10 @@
-import { Bucket, File, GetFilesOptions, Storage } from '@google-cloud/storage';
+import {
+  Bucket,
+  DeleteFilesOptions,
+  File,
+  GetFilesOptions,
+  Storage,
+} from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
@@ -37,18 +43,19 @@ export class FilesService {
       fileType = 'profilePic';
     }
 
-    const gscFileName = `user-${user.id}/${user.firstName}_${user.lastName}_${fileType}.${fileExt}`;
+    const fileName = `${user.firstName}_${user.lastName}_${fileType}.${fileExt}`;
+    const gscFileName = `user-${user.id}/${fileName}`;
     const gscFile = this.bucket.file(gscFileName);
 
     const allowedTypes = this.allowedType(fileExt);
 
     if (allowedTypes.allowedImage) {
       await this.userService.updateUser(user.id, {
-        imageUrl: gscFileName,
+        imageUrl: fileName,
       });
     } else if (allowedTypes.allowedResume) {
       await this.userService.updateUser(user.id, {
-        resumeUrl: gscFileName,
+        resumeUrl: fileName,
       });
     }
 
@@ -72,6 +79,7 @@ export class FilesService {
       streamOptions.prefix = `${userFolderPath}/`;
       streamOptions.autoPaginate = true;
     }
+
     this.bucket
       .getFilesStream(streamOptions)
       .on('data', (file: File) => {
@@ -97,6 +105,24 @@ export class FilesService {
       .on('end', () => {
         console.log('all files downloaded');
       });
+  }
+
+  async deleteFiles(id?: number) {
+    const streamOptions: DeleteFilesOptions = {};
+    if (id) {
+      const userFolderPath = `user-${id}`;
+      streamOptions.prefix = `${userFolderPath}/`;
+      streamOptions.autoPaginate = true;
+      streamOptions.force = true;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    this.bucket.deleteFiles(streamOptions, (err, _files) => {
+      if (err) {
+        console.log(err);
+      }
+      console.log('Files Deleted');
+    });
   }
 
   private allowedType = (fileExt: string) => {
