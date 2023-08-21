@@ -20,6 +20,7 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { ResetPasswordDto } from 'src/common/dtos/resetPassword.dto';
 
 @Serialize(UserDto)
 @Controller('auth')
@@ -82,9 +83,25 @@ export class AuthController {
     @Res() res: Response,
     @Session() session: any,
   ) {
-    console.log(req.user);
     const data = await this.authService.login(req.user['id']);
     session.userId = data.user.id;
+
     return res.status(HttpStatus.OK).json(data);
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Post('/reset-password')
+  async resetPassword(
+    @CurrentUser() user: Partial<User>,
+    @Body() body: ResetPasswordDto,
+    @Req() req: Request,
+    @Session() session: any,
+  ) {
+    const result = await this.authService.resetPassword(user.id, body);
+
+    req.headers.authorization = null;
+    session.userId = null;
+
+    return result;
   }
 }

@@ -14,6 +14,7 @@ import {
   generatePassword,
   passwordHash,
 } from 'src/common/utils/generatePassword';
+import { ResetPasswordDto } from 'src/common/dtos/resetPassword.dto';
 
 @Injectable()
 export class AuthService {
@@ -72,6 +73,26 @@ export class AuthService {
       user,
       ...token,
     };
+  }
+
+  async resetPassword(id: number, body: ResetPasswordDto) {
+    const { currentPassword, newPassword } = body;
+
+    const user = await this.userService.findUserWithUnique({ id });
+
+    const [salt, storedHash] = user.password.split('.');
+    const hash = await passwordHash(currentPassword, salt);
+
+    if (storedHash !== hash.toString('hex'))
+      throw new ForbiddenException('Incorrect password');
+
+    const newPasswordHash = await generatePassword(newPassword);
+
+    await this.userService.updateUser(id, {
+      password: newPasswordHash,
+    });
+
+    return 'Password has been changed, please log in again';
   }
 
   async signToken(user: User) {
