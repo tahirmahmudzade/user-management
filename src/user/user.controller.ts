@@ -12,12 +12,19 @@ import { UserService } from './user.service';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { RegisterDto } from 'src/common/dtos/register.dto';
 import { Prisma } from '@prisma/client';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
 @UseGuards(AdminGuard)
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiResponse({
+    status: 200,
+    description: 'All users',
+    isArray: true,
+  })
   @Get('/')
   async findAllUsers() {
     const users = await this.userService.findAllUsers();
@@ -25,6 +32,10 @@ export class UserController {
     return users;
   }
 
+  @ApiResponse({
+    status: 200,
+    description: 'User found',
+  })
   @Get('/:id')
   async findUserById(@Param('id') id: string) {
     const user = await this.userService.findUserWithUnique({
@@ -34,6 +45,15 @@ export class UserController {
     return user;
   }
 
+  @ApiResponse({
+    status: 201,
+    description: 'User created',
+  })
+  @ApiBody({
+    description: 'Create a new user',
+    type: RegisterDto,
+    required: true,
+  })
   @Post('/createUser')
   async createUser(@Body() body: RegisterDto) {
     const user = await this.userService.createUser(body);
@@ -41,6 +61,10 @@ export class UserController {
     return user;
   }
 
+  @ApiResponse({
+    status: 200,
+    description: 'User updated',
+  })
   @Patch('/updateUser/:id')
   async updateUser(
     @Param('id') id: string,
@@ -51,6 +75,10 @@ export class UserController {
     return user;
   }
 
+  @ApiResponse({
+    status: 200,
+    description: 'User deleted',
+  })
   @Delete('/deleteUser/:id')
   async deleteUser(@Param('id') id: string) {
     const result = await this.userService.deleteUser(parseInt(id));

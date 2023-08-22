@@ -16,7 +16,10 @@ import { Request } from 'express';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Files')
+@ApiBearerAuth('Access Token')
 @UseGuards(AccessTokenGuard)
 @UseGuards(AuthGuard)
 @Controller('files')

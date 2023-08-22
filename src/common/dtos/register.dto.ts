@@ -1,14 +1,20 @@
-import {
-  IsEmail,
-  IsOptional,
-  IsString,
-  IsUrl,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail({ allow_utf8_local_part: true }, { message: 'Invalid email' })
+  @ApiProperty({
+    description: "User's email",
+    example: 'johndoe@gmail.com',
+    type: String,
+    required: true,
+    maxLength: 255,
+  })
+  @IsEmail(
+    {},
+    {
+      message: 'Invalid email',
+    },
+  )
   @MaxLength(255, {
     message(validationArguments) {
       return `Email is too long. Maximal length is ${validationArguments.constraints[0]} characters`;
@@ -16,12 +22,32 @@ export class RegisterDto {
   })
   public email: string;
 
+  @ApiProperty({
+    description: "User's first name",
+    example: 'John',
+    type: String,
+    required: true,
+  })
   @IsString({ message: 'First name must be a string' })
   public firstName: string;
 
+  @ApiProperty({
+    description: "User's last name",
+    example: 'Doe',
+    type: String,
+    required: true,
+  })
   @IsString({ message: 'Last name must be a string' })
   public lastName: string;
 
+  @ApiProperty({
+    description: "User's password",
+    example: '12345678',
+    type: String,
+    required: true,
+    minLength: 8,
+    maxLength: 20,
+  })
   @IsString({ message: 'Invalid password' })
   @MaxLength(20, {
     message(validationArguments) {
@@ -34,13 +60,4 @@ export class RegisterDto {
     },
   })
   public password: string;
-
-  @IsString({ message: 'Path to the actual image must be a string' })
-  @IsUrl({}, { message: 'Invalid image url format' })
-  @IsOptional()
-  public imageUrl: string;
-
-  @IsString({ message: 'Path to the actual resume must be a string' })
-  @IsOptional()
-  public resumeUrl: string;
 }

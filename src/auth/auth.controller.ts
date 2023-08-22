@@ -19,14 +19,33 @@ import { Request, Response } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User } from '@prisma/client';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
-import { AuthGuard } from '@nestjs/passport';
 import { ResetPasswordDto } from 'src/common/dtos/resetPassword.dto';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { GoogleAuthGuard } from 'src/common/guards/google.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Serialize(UserDto)
 @Controller('auth')
+@ApiTags('Authentication')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiBody({
+    description: 'Create a new user',
+    type: RegisterDto,
+    required: true,
+  })
+  @ApiCreatedResponse({
+    status: 201,
+    description: 'User created',
+  })
   @Post('/signup')
   async signUp(
     @Body() body: RegisterDto,
@@ -40,6 +59,10 @@ export class AuthController {
     return res.status(HttpStatus.CREATED).json(data);
   }
 
+  @ApiOkResponse({
+    status: 200,
+    description: 'User logged in',
+  })
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   async login(
@@ -54,14 +77,16 @@ export class AuthController {
     return res.status(HttpStatus.OK).json(data);
   }
 
+  @ApiBearerAuth('Access Token')
+  @ApiNoContentResponse({
+    status: 204,
+    description: 'User logged out',
+  })
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
+  @UseGuards(AuthGuard)
   @Get('/logout')
-  async logout(
-    @CurrentUser() user: Partial<User>,
-    @Req() req: Request,
-    @Session() session: any,
-  ) {
+  async logout(@Req() req: Request, @Session() session: any) {
     req.headers.authorization = null;
 
     session.userId = null;
@@ -69,14 +94,13 @@ export class AuthController {
     return 'Logged out';
   }
 
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   @Get('/google/login')
   async googleLogin() {
     return { message: 'Redirecting to google login page...' };
   }
 
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleAuthGuard)
   @Get('/google/redirect')
   async googleRedirect(
     @Req() req: Request,
@@ -89,8 +113,19 @@ export class AuthController {
     return res.status(HttpStatus.OK).json(data);
   }
 
+  @ApiBearerAuth('Access Token')
+  @ApiBody({
+    description: 'Reset password',
+    type: ResetPasswordDto,
+    required: true,
+  })
+  @ApiOkResponse({
+    status: 200,
+    description: 'Password reset',
+  })
   @UseGuards(AccessTokenGuard)
   @Post('/reset-password')
+  @HttpCode(HttpStatus.OK)
   async resetPassword(
     @CurrentUser() user: Partial<User>,
     @Body() body: ResetPasswordDto,
@@ -103,5 +138,17 @@ export class AuthController {
     session.userId = null;
 
     return result;
+  }
+
+  @ApiOkResponse({
+    description: 'User profile',
+    status: 200,
+  })
+  @UseGuards(AccessTokenGuard)
+  @UseGuards(AuthGuard)
+  @Get('/my-profile')
+  @HttpCode(HttpStatus.OK)
+  async myProfile(@CurrentUser() user: Partial<User>) {
+    return user;
   }
 }
