@@ -16,7 +16,7 @@ import { Request } from 'express';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Files')
 @ApiBearerAuth('Access Token')
@@ -26,6 +26,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Upload a resume',
+  })
   @Post('uploadResume')
   @UseInterceptors(FileInterceptor('file'))
   async uploadResume(
@@ -45,6 +49,10 @@ export class FilesController {
     return uploadedResume;
   }
 
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Upload an image',
+  })
   @Post('uploadImage')
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(

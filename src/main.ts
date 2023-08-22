@@ -7,14 +7,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // ConfigService for accessing environment variables
   const config = app.get(ConfigService);
 
   app.setGlobalPrefix('api');
 
-  app.use(helmet({}));
+  // Helmet for setting HTTP headers
+  app.use(helmet());
 
+  // CORS for allowing cross-origin requests
   app.enableCors({ credentials: true, methods: 'GET,POST,PATCH,DELETE' });
 
+  // Swagger for API documentation
   const options = new DocumentBuilder()
     .setTitle('User Management API')
     .setDescription('User Management API')

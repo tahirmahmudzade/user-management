@@ -15,9 +15,8 @@ import * as Joi from 'joi';
 import { APP_PIPE } from '@nestjs/core';
 import { FilesModule } from './files/files.module';
 import { CurrentUserMiddleware } from './common/middlewares/current-user.middleware';
-
+import cookieSession from 'cookie-session';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const cookieSession = require('cookie-session');
 
 @Module({
   imports: [
@@ -55,8 +54,9 @@ export class AppModule implements NestModule {
       .apply(
         cookieSession({
           name: 'session',
-          keys: [this.configService.get<string>('COOKIE_KEY')],
+          keys: [this.configService.get('SESSION_KEY')],
           maxAge: 24 * 60 * 60 * 1000,
+          httpOnly: true,
         }),
       )
       .forRoutes('*');

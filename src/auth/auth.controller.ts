@@ -31,9 +31,9 @@ import {
 import { GoogleAuthGuard } from 'src/common/guards/google.guard';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 
+@ApiTags('Authentication')
 @Serialize(UserDto)
 @Controller('auth')
-@ApiTags('Authentication')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
