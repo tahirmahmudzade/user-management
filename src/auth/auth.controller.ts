@@ -7,7 +7,6 @@ import {
   Post,
   Req,
   Res,
-  Session,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -29,7 +28,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { GoogleAuthGuard } from 'src/common/guards/google.guard';
-import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @ApiTags('Authentication')
 @Serialize(UserDto)
@@ -47,14 +45,8 @@ export class AuthController {
     description: 'User created',
   })
   @Post('/signup')
-  async signUp(
-    @Body() body: RegisterDto,
-    @Res() res: Response,
-    @Session() session: any,
-  ) {
+  async signUp(@Body() body: RegisterDto, @Res() res: Response) {
     const data = await this.authService.signUp(body);
-
-    session.userId = data.user.id;
 
     return res.status(HttpStatus.CREATED).json(data);
   }
@@ -65,14 +57,8 @@ export class AuthController {
   })
   @UseGuards(LocalAuthGuard)
   @Post('/login')
-  async login(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Session() session: any,
-  ) {
+  async login(@Req() req: Request, @Res() res: Response) {
     const data = await this.authService.login(req.user['id']);
-
-    session.userId = data.user.id;
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -84,12 +70,9 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard)
-  @UseGuards(AuthGuard)
   @Get('/logout')
-  async logout(@Req() req: Request, @Session() session: any) {
+  async logout(@Req() req: Request) {
     req.headers.authorization = null;
-
-    session.userId = null;
 
     return 'Logged out';
   }
@@ -102,13 +85,8 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('/google/redirect')
-  async googleRedirect(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Session() session: any,
-  ) {
+  async googleRedirect(@Req() req: Request, @Res() res: Response) {
     const data = await this.authService.login(req.user['id']);
-    session.userId = data.user.id;
 
     return res.status(HttpStatus.OK).json(data);
   }
@@ -130,12 +108,10 @@ export class AuthController {
     @CurrentUser() user: Partial<User>,
     @Body() body: ResetPasswordDto,
     @Req() req: Request,
-    @Session() session: any,
   ) {
     const result = await this.authService.resetPassword(user.id, body);
 
     req.headers.authorization = null;
-    session.userId = null;
 
     return result;
   }
@@ -145,7 +121,6 @@ export class AuthController {
     status: 200,
   })
   @UseGuards(AccessTokenGuard)
-  @UseGuards(AuthGuard)
   @Get('/my-profile')
   @HttpCode(HttpStatus.OK)
   async myProfile(@CurrentUser() user: Partial<User>) {

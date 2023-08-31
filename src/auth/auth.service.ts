@@ -28,7 +28,7 @@ export class AuthService {
     const isUser = await this.userService.findUserWithUnique({
       email: data.email,
     });
-    console.log(data);
+
     if (isUser)
       throw new BadRequestException('User already exists, please log in');
 
