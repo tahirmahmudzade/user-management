@@ -9,14 +9,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { AdminGuard } from 'src/common/guards/admin.guard';
 import { RegisterDto } from 'src/common/dtos/register.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @ApiTags('Users')
-@UseGuards(AdminGuard)
 @Controller('users')
+@UseGuards(AccessTokenGuard, RolesGuard)
+@Roles(Role.ADMIN)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
