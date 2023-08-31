@@ -21,6 +21,7 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
       scope: ['email', 'profile'],
     });
   }
+
   async validate(
     _accessToken: string,
     _refreshToken: string,
@@ -29,11 +30,11 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     const isUser: User = await this.userService.findUserWithUnique({
       email: profile.emails[0].value,
     });
-    console.log('google validate');
-    console.log(isUser);
+
     if (isUser) {
       return isUser;
     }
+
     const user = await this.authService.signUp({
       email: profile.emails[0].value,
       firstName: profile.name.givenName,
@@ -45,7 +46,6 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
         symbols: true,
         uppercase: true,
       }),
-      role: 'USER',
     });
 
     return user;
