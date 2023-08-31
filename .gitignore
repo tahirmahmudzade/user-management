@@ -5,6 +5,9 @@
 # env files
 .env
 
+# GCLOUD 
+key.json
+
 # Logs
 logs
 *.log
