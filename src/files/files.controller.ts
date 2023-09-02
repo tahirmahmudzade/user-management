@@ -15,6 +15,9 @@ import { UploadFilePipe } from 'src/common/pipes/uploadFilePipe.pipe';
 import { Request } from 'express';
 import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @ApiTags('Files')
 @ApiBearerAuth('Access Token')
@@ -65,6 +68,8 @@ export class FilesController {
     return uploadedImage;
   }
 
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @Get('retrieveAllFiles')
   async retrieveAllFiles() {
     const files = await this.filesService.retrieveFiles();
