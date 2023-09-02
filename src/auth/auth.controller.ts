@@ -47,7 +47,6 @@ export class AuthController {
   @Post('/signup')
   async signUp(@Body() body: RegisterDto, @Res() res: Response) {
     const data = await this.authService.signUp(body);
-
     return res.status(HttpStatus.CREATED).json(data);
   }
 
@@ -59,7 +58,6 @@ export class AuthController {
   @Post('/login')
   async login(@Req() req: Request, @Res() res: Response) {
     const data = await this.authService.login(req.user['id']);
-
     return res.status(HttpStatus.OK).json(data);
   }
 
@@ -73,7 +71,6 @@ export class AuthController {
   @Get('/logout')
   async logout(@Req() req: Request) {
     req.headers.authorization = null;
-
     return 'Logged out';
   }
 
