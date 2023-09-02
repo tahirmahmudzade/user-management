@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { consola } from 'consola';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,7 @@ async function bootstrap() {
   // ConfigService for accessing environment variables
   const config = app.get(ConfigService);
 
+  // Global prefix for all routes
   app.setGlobalPrefix('api');
 
   // Helmet for setting HTTP headers
@@ -29,6 +31,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(config.get<number>('PORT') || 8888);
+  await app.listen(config.get<number>('PORT') || 8888, () => {
+    consola.success(`Server started on port ${config.get<number>('PORT')}`);
+  });
 }
 bootstrap();
