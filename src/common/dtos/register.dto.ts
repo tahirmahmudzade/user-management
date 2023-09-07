@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Prisma } from '@prisma/client';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsJsonObject } from '../utils/isJsonObject';
 
 export class RegisterDto {
   @ApiProperty({
@@ -60,4 +62,7 @@ export class RegisterDto {
     },
   })
   public password: string;
+
+  @IsJsonObject()
+  public passport: Prisma.InputJsonObject;
 }
