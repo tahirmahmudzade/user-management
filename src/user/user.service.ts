@@ -15,7 +15,7 @@ export class UserService {
   async findUserWithUnique(field: Prisma.UserWhereUniqueInput) {
     if (field.id || field.email) {
       const user = await this.prisma.user.findUnique({ where: field });
-      console.log(user.passport.valueOf());
+      console.log(user.passport);
       return user;
     }
     return null;

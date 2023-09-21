@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   UseGuards,
@@ -18,8 +19,8 @@ import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @ApiTags('Users')
 @Controller('users')
-@UseGuards(AccessTokenGuard, RolesGuard)
-@Roles(Role.ADMIN)
+// @UseGuards(AccessTokenGuard, RolesGuard)
+// @Roles(Role.ADMIN)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -40,9 +41,9 @@ export class UserController {
     description: 'User found',
   })
   @Get('/:id')
-  async findUserById(@Param('id') id: string) {
+  async findUserById(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.findUserWithUnique({
-      id: parseInt(id),
+      id,
     });
 
     return user;
@@ -70,10 +71,10 @@ export class UserController {
   })
   @Patch('/updateUser/:id')
   async updateUser(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() body: Prisma.UserUpdateInput,
   ) {
-    const user = await this.userService.updateUser(parseInt(id), body);
+    const user = await this.userService.updateUser(id, body);
 
     return user;
   }
@@ -83,8 +84,8 @@ export class UserController {
     description: 'User deleted',
   })
   @Delete('/deleteUser/:id')
-  async deleteUser(@Param('id') id: string) {
-    const result = await this.userService.deleteUser(parseInt(id));
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.userService.deleteUser(id);
 
     return result;
   }

@@ -5,40 +5,46 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator json {
+  provider  = "prisma-json-types-generator"
+  namespace = "PrismaJson"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
   firstName String
   lastName  String
   password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   imageUrl  String?
   resumeUrl String?
-  role      Role      @default(USER)
-  passport  Json?
-  Passport  Passport?
+  role      Role     @default(USER)
+
+  /// [Passport]
+  passport Json?
 
   @@map(name: "users")
 }
 
-model Passport {
-  id        Int       @id @default(autoincrement())
-  number    String
-  issuedBy  String?
-  issuedOn  DateTime?
-  expiresOn DateTime?
+// model Passport {
+//   id        Int       @id @default(autoincrement())
+//   number    String
+//   issuedBy  String?
+//   issuedOn  DateTime?
+//   expiresOn DateTime?
 
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
+//   userId Int  @unique
+//   user   User @relation(fields: [userId], references: [id])
 
-  @@map(name: "passports")
-}
+//   @@map(name: "passports")
+// }
 
 enum Role {
   ADMIN

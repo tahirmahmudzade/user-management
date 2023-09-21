@@ -9,7 +9,7 @@ import { AccessTokenStrategy } from '../common/strategies/accessToken.strategy';
 import { GoogleAuthStrategy } from '../common/strategies/google-auth.strategy';
 
 @Module({
-  imports: [UserModule, PassportModule, JwtModule.register({})],
+  imports: [UserModule, PassportModule, JwtModule],
   controllers: [AuthController],
   providers: [
     AuthService,
