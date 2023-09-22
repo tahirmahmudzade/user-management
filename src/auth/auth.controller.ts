@@ -121,6 +121,7 @@ export class AuthController {
   @Get('/my-profile')
   @HttpCode(HttpStatus.OK)
   async myProfile(@CurrentUser() user: Partial<User>) {
+    const a = 'b';
     return user;
   }
 }
