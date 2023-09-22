@@ -29,8 +29,8 @@ import {
 } from '@nestjs/swagger';
 import { GoogleAuthGuard } from 'src/common/guards/google.guard';
 
-@ApiTags('Authentication')
-@Serialize(UserDto)
+// @ApiTags('Authentication')
+// @Serialize(UserDto)
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -46,6 +46,7 @@ export class AuthController {
   })
   @Post('/signup')
   async signUp(@Body() body: RegisterDto, @Res() res: Response) {
+    const a = 'b';
     const data = await this.authService.signUp(body);
     return res.status(HttpStatus.CREATED).json(data);
   }
@@ -117,7 +118,7 @@ export class AuthController {
     description: 'User profile',
     status: 200,
   })
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @Get('/my-profile')
   @HttpCode(HttpStatus.OK)
   async myProfile(@CurrentUser() user: Partial<User>) {
